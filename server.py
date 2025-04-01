@@ -41,8 +41,9 @@ def game_loop():
             game_state['ball']['vx'] *= -1
         if game_state['ball']['y'] < 10 or game_state['ball']['y'] > 390:
             game_state['ball']['vy'] *= -1
-        # game_state['ball']['x'] = max(10, min(590, game_state['ball']['x']))
-        # game_state['ball']['y'] = max(10, min(390, game_state['ball']['y']))
+
+        if game_state['ball']['x'] < 0 or game_state['ball']['x'] > 600 or game_state['ball']['y'] < 0 or game_state['ball']['y'] > 400:
+            game_state['ball'] = {'x': 300, 'y': 200, 'vx': 0, 'vy': 0}
 
         # Broadcast update to all clients
         socketio.emit('game_update', game_state)
@@ -71,8 +72,8 @@ def handle_move(data):
         # Apply force to ball
         dx = data['position']['x'] - game_state['ball']['x']
         dy = data['position']['y'] - game_state['ball']['y']
-        game_state['ball']['vx'] += dx * 0.1
-        game_state['ball']['vy'] += dy * 0.1
+        game_state['ball']['vx'] -= dx * 0.1
+        game_state['ball']['vy'] -= dy * 0.1
 
     # No need to emit here - game_loop handles updates
 
