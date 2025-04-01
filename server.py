@@ -1,3 +1,8 @@
+import eventlet
+
+eventlet.monkey_patch()
+
+import os
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 import math
@@ -13,10 +18,12 @@ game_state = {
     'ball': {'x': 300, 'y': 200, 'vx': 0, 'vy': 0}  # Added velocity
 }
 
+
 def check_collision(player_pos, ball_pos):
-    distance = math.sqrt((player_pos['x'] - ball_pos['x'])**2 +
-                         (player_pos['y'] - ball_pos['y'])**2)
+    distance = math.sqrt((player_pos['x'] - ball_pos['x']) ** 2 +
+                         (player_pos['y'] - ball_pos['y']) ** 2)
     return distance < 25  # Player radius (15) + Ball radius (10)
+
 
 def game_loop():
     """Background thread that updates game state"""
@@ -41,15 +48,18 @@ def game_loop():
         socketio.emit('game_update', game_state)
 
         # Control update rate (60 times per second)
-        time.sleep(1/60)
+        time.sleep(1 / 60)
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @socketio.on('connect')
 def handle_connect():
     print(f'Client connected: {request.sid}')
+
 
 @socketio.on('player_move')
 def handle_move(data):
@@ -66,7 +76,14 @@ def handle_move(data):
 
     # No need to emit here - game_loop handles updates
 
+
 if __name__ == '__main__':
-    # Start game loop in a background thread
+    # Start game loop thread
     threading.Thread(target=game_loop, daemon=True).start()
-    socketio.run(app, debug=True)
+
+    # Production-ready server
+    socketio.run(
+        app,
+        host='0.0.0.0',
+        port=int(os.environ.get('PORT', 5000)),
+    )
